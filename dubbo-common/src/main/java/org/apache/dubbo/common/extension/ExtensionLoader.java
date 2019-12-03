@@ -711,6 +711,7 @@ public class ExtensionLoader<T> {
     }
 
     /**
+     * 加载拓展类
      * synchronized in getExtensionClasses
      * */
     private Map<String, Class<?>> loadExtensionClasses() {
