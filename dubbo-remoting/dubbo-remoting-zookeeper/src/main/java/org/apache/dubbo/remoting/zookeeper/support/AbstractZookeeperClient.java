@@ -74,16 +74,17 @@ public abstract class AbstractZookeeperClient<TargetDataListener, TargetChildLis
             if(persistentExistNodePath.contains(path)){
                 return;
             }
-            if (checkExists(path)) {
+            if (checkExists(path)) {// 如果要创建的节点类型非临时节点，那么这里要检测节点是否存在
                 persistentExistNodePath.add(path);
                 return;
             }
         }
         int i = path.lastIndexOf('/');
         if (i > 0) {
+            // 递归创建上一级路径
             create(path.substring(0, i), false);
         }
-        if (ephemeral) {
+        if (ephemeral) { // 根据 ephemeral 的值创建临时或持久节点
             createEphemeral(path);
         } else {
             createPersistent(path);

@@ -172,8 +172,8 @@ public class RegistryProtocol implements Protocol {
     }
 
     public void register(URL registryUrl, URL registeredProviderUrl) {
-        Registry registry = registryFactory.getRegistry(registryUrl);
-        registry.register(registeredProviderUrl);
+        Registry registry = registryFactory.getRegistry(registryUrl);// 获取 Registry
+        registry.register(registeredProviderUrl); // 注册服务
 
         ProviderModel model = ApplicationModel.getProviderModel(registeredProviderUrl.getServiceKey());
         model.addStatedUrl(new ProviderModel.RegisterStatedURL(
@@ -187,36 +187,44 @@ public class RegistryProtocol implements Protocol {
     public <T> Exporter<T> export(final Invoker<T> originInvoker) throws RpcException {
         URL registryUrl = getRegistryUrl(originInvoker);
         // url to export locally
+        // 获取注册中心 URL，以 zookeeper 注册中心为例，得到的示例 URL 如下：
+        // zookeeper://127.0.0.1:2181/com.alibaba.dubbo.registry.RegistryService?application=demo-provider&dubbo=2.0.2&export=dubbo%3A%2F%2F172.17.48.52%3A20880%2Fcom.alibaba.dubbo.demo.DemoService%3Fanyhost%3Dtrue%26application%3Ddemo-provider
         URL providerUrl = getProviderUrl(originInvoker);
 
         // Subscribe the override data
         // FIXME When the provider subscribes, it will affect the scene : a certain JVM exposes the service and call
         //  the same service. Because the subscribed is cached key with the name of the service, it causes the
         //  subscription information to cover.
+        // 获取已注册的服务提供者 URL，比如：
+        // dubbo://172.17.48.52:20880/com.alibaba.dubbo.demo.DemoService?anyhost=true&application=demo-provider&dubbo=2.0.2&generic=false&interface=com.alibaba.dubbo.demo.DemoService&methods=sayHello
         final URL overrideSubscribeUrl = getSubscribedOverrideUrl(providerUrl);
+        // 创建监听器
         final OverrideListener overrideSubscribeListener = new OverrideListener(overrideSubscribeUrl, originInvoker);
         overrideListeners.put(overrideSubscribeUrl, overrideSubscribeListener);
 
         providerUrl = overrideUrlWithConfig(providerUrl, overrideSubscribeListener);
-        //export invoker
+        //export invoker // 导出服务
         final ExporterChangeableWrapper<T> exporter = doLocalExport(originInvoker, providerUrl);
 
         // url to registry
-        final Registry registry = getRegistry(originInvoker);
+        final Registry registry = getRegistry(originInvoker); // 根据 URL 加载 Registry 实现类，比如 ZookeeperRegistry
+        // 获取订阅 URL，比如：
+        // provider://172.17.48.52:20880/com.alibaba.dubbo.demo.DemoService?category=configurators&check=false&anyhost=true&application=demo-provider&dubbo=2.0.2&generic=false&interface=com.alibaba.dubbo.demo.DemoService&methods=sayHello
         final URL registeredProviderUrl = getUrlToRegistry(providerUrl, registryUrl);
-        //to judge if we need to delay publish
+        //to judge if we need to delay publish  // 获取 register 参数
         boolean register = providerUrl.getParameter(REGISTER_KEY, true);
         if (register) {
+            // 向注册中心注册服务
             register(registryUrl, registeredProviderUrl);
         }
 
         // Deprecated! Subscribe to override rules in 2.6.x or before.
-        registry.subscribe(overrideSubscribeUrl, overrideSubscribeListener);
+        registry.subscribe(overrideSubscribeUrl, overrideSubscribeListener); // 向注册中心进行订阅 override 数据
 
         exporter.setRegisterUrl(registeredProviderUrl);
         exporter.setSubscribeUrl(overrideSubscribeUrl);
         //Ensure that a new exporter instance is returned every time export
-        return new DestroyableExporter<>(exporter);
+        return new DestroyableExporter<>(exporter);// 创建并返回 DestroyableExporter
     }
 
     private URL overrideUrlWithConfig(URL providerUrl, OverrideListener listener) {

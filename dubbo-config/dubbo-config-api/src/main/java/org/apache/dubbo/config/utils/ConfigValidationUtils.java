@@ -175,6 +175,7 @@ public class ConfigValidationUtils {
             for (RegistryConfig config : registries) {
                 String address = config.getAddress();
                 if (StringUtils.isEmpty(address)) {
+                    // 若 address 为空，则将其设为 0.0.0.0
                     address = ANYHOST_VALUE;
                 }
                 if (!RegistryConfig.NO_AVAILABLE.equalsIgnoreCase(address)) {
