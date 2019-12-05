@@ -48,14 +48,15 @@ public abstract class AbstractProxyFactory implements ProxyFactory {
     @Override
     public <T> T getProxy(Invoker<T> invoker, boolean generic) throws RpcException {
         Set<Class<?>> interfaces = new HashSet<>();
-
+        // 获取接口列表
         String config = invoker.getUrl().getParameter(INTERFACES);
         if (config != null && config.length() > 0) {
+            // 切分接口列表
             String[] types = COMMA_SPLIT_PATTERN.split(config);
             if (types != null && types.length > 0) {
                 for (int i = 0; i < types.length; i++) {
                     // TODO can we load successfully for a different classloader?.
-                    interfaces.add(ReflectUtils.forName(types[i]));
+                    interfaces.add(ReflectUtils.forName(types[i]));// 加载接口类
                 }
             }
         }
@@ -67,7 +68,7 @@ public abstract class AbstractProxyFactory implements ProxyFactory {
         interfaces.add(invoker.getInterface());
         interfaces.addAll(Arrays.asList(INTERNAL_INTERFACES));
 
-        return getProxy(invoker, interfaces.toArray(new Class<?>[0]));
+        return getProxy(invoker, interfaces.toArray(new Class<?>[0])); // 调用重载方法
     }
 
     public abstract <T> T getProxy(Invoker<T> invoker, Class<?>[] types);
