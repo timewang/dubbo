@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * When invoke fails, log the error message and ignore this error by returning an empty Result.
  * Usually used to write audit logs and other operations
- *
+ * FailsafeClusterInvoker 是一种失败安全的 Cluster Invoker。所谓的失败安全是指，当调用过程中出现异常时，FailsafeClusterInvoker 仅会打印异常，而不会抛出异常。
  * <a href="http://en.wikipedia.org/wiki/Fail-safe">Fail-safe</a>
  *
  */
